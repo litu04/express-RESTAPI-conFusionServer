@@ -43,41 +43,25 @@ app.use(session({
   store: new fileStore()
 }));
 
+app.use('/', indexRouter);
+app.use('/users', usersRouter);
+
 function auth(req,res,next){
   console.log("session: ",req.session);
 
   if(!req.session.user){
-      var authHeader = req.headers.authorization;  // gethold of the authorization header
-
-      if(!authHeader){ // if authHeader is null
-
         var err = new Error("You are not authenticated!");
-        res.setHeader('WWW-Authenticate','Basic'); // asking the client to pass me the authorization header
         err.status = 401;
         return next(err);
+      }else{
+        if(req.session.user = 'authenticated'){
+          next(); // req will pass to the next middleware
+         } else{
+            var err = new Error("You are not authenticated!");
+            err.status = 403;
+            return next(err);
+          }
       }
-      var auth = new Buffer.from(authHeader.split(' ')[1],'base64').toString().split(':');
-      var username = auth[0];
-      var password = auth[1];
-
-      if(username === 'admin' && password === 'password'){
-        req.session.user = 'admin';
-        next(); // req will pass to the next middleware
-      } else{
-        var err = new Error("You are not authenticated!");
-        res.setHeader('WWW-Authenticate','Basic');
-        err.status = 401;
-        return next(err);
-      }
-  } else {
-    if(req.session.user === 'admin'){
-      next();
-    } else {
-      var err = new Error("You are not authenticated!");
-      err.status = 401;
-      return next(err);
-    }
-  }
 }
 
 // // function for basic authorization
@@ -148,8 +132,6 @@ function auth(req,res,next){
 app.use(auth); // before client access any of the resources client needs to be authorized
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
 app.use('/dishes',dishRouter);
 app.use('/promotions',promoRouter);
 app.use('/leaders',leaderRouter);
