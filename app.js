@@ -33,7 +33,34 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
+// function for basic authorization
+function auth(req,res,next){
+  console.log("Headers: ",req.headers);  // content for request headers
 
+  var authHeader = req.headers.authorization;  // gethold of the authorization header
+
+  if(!authHeader){ // if authHeader is null
+
+    var err = new Error("You are not authenticated!");
+    res.setHeader('WWW-Authenticate','Basic'); // asking the client to pass me the authorization header
+    err.status = 401;
+    return next(err);
+  }
+  var auth = new Buffer(authHeader.split(' ')[1],'base64').toString().split(':');
+  var username = auth[0];
+  var password = auth[1];
+
+  if(username === 'admin' && password === 'password'){
+    next(); // req will pass to the next middleware
+  } else{
+    var err = new Error("You are not authenticated!");
+    res.setHeader('WWW-Authenticate','Basic');
+    err.status = 401;
+    return next(err);
+  }
+}
+
+app.use(auth); // before client access any of the resources client needs to be authorized
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
