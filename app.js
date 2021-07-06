@@ -8,19 +8,22 @@ var session = require('express-session');
 var fileStore = require('session-file-store')(session);
 var passport = require('passport');
 var authenticate = require('./authenticate');
+var config = require('./config');
+
+
+
+const Dishes = require('./models/dishes');
+const Leaders = require('./models/leaders');
+const Promotions = require('./models/promotions');
+
+const url = config.mongoUrl;
+const connect = mongoose.connect(url);
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var dishRouter = require('./routes/dishRouter');
 var promoRouter = require('./routes/promoRouter');
 var leaderRouter = require('./routes/leaderRouter');
-
-const Dishes = require('./models/dishes');
-const Leaders = require('./models/leaders');
-const Promotions = require('./models/promotions');
-
-const url = "mongodb://localhost:27017/conFusion";
-const connect = mongoose.connect(url);
 
 connect.then((db) => {
   console.log("Connected to mongodb server");
@@ -37,32 +40,33 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 //app.use(cookieParser('12345-67890-09876-54321'));   // using the secret key inside cookieParser()
 
-app.use(session({
-  name: 'session-id',
-  secret: '12345-67890-09876-54321',
-  saveUninitialized: false,
-  resave: false,
-  store: new fileStore()
-}));
+// app.use(session({
+//   name: 'session-id',
+//   secret: '12345-67890-09876-54321',
+//   saveUninitialized: false,
+//   resave: false,
+//   store: new fileStore()
+// }));
 
 app.use(passport.initialize());
-app.use(passport.session());
+//app.use(passport.session());
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 
-function auth(req,res,next){
-  //console.log("session: ",req.session);
-  console.log("user: ",req.user);
+//using session
+// function auth(req,res,next){
+//   //console.log("session: ",req.session);
+//   console.log("user: ",req.user);
 
-  if(!req.user){
-        var err = new Error("You are not authenticated!");
-        err.status = 403;
-        next(err);
-      }else{
-        next();
-      }
-}
+//   if(!req.user){
+//         var err = new Error("You are not authenticated!");
+//         err.status = 403;
+//         next(err);
+//       }else{
+//         next();
+//       }
+// }
 
 // // function for basic authorization
 // function auth(req,res,next){
@@ -129,7 +133,7 @@ function auth(req,res,next){
 //   }
 // }
 
-app.use(auth); // before client access any of the resources client needs to be authorized
+//app.use(auth); // before client access any of the resources client needs to be authorized
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/dishes',dishRouter);

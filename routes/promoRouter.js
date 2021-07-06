@@ -3,6 +3,7 @@ const bodyparser = require('body-parser');
 const promoRouter = express.Router({mergeParams: true});
 const mongoose = require('mongoose');
 const Promotions = require('../models/promotions');
+const authenticate = require('../authenticate');
 
 promoRouter.use(bodyparser.json());
 
